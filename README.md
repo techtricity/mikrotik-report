@@ -1,86 +1,74 @@
-cat << 'EOF' > README.md
 # Mikrotik Firewall Bomgar Reporter
 
-This script parses Mikrotik firewall logs for unpermitted access attempts (specifically targeting "BOMGAR" related traffic), aggregates hits by `/24` subnets, performs GeoIP and WHOIS lookups to identify the source, and sends a formatted monospaced HTML report.
+This script parses Mikrotik firewall logs for unpermitted access attempts (in this case specifically traffic keyed with the word BOMGAR), aggregates hits by /24 subnets, and performs GeoIP/WHOIS lookups to identify the source.
 
 ## Features
-* **Subnet Aggregation**: Consolidates individual IP hits into `/24` blocks to reduce report noise.
-* **Dual-Layer Identification**: Uses MaxMind GeoLite2 for geographic data and falls back to WHOIS lookups to identify Organizations (ISPs/Data Centers).
-* **Monospaced Formatting**: Uses `printf` padding and HTML `<pre>` tags to ensure perfectly aligned columns in email clients.
-* **Fail-Fast Configuration**: Script exits safely if required configuration variables are missing.
+* Subnet Aggregation: Consolidates individual IP hits into /24 blocks to reduce report noise.
+* Dual-Layer Identification: Uses MaxMind GeoLite2 for geography and falls back to WHOIS to identify the Organization/ISP.
+* Fail-Fast Configuration: The script will strictly exit with an error if the configuration file is missing, unreadable, or missing required variables.
+* Monospaced HTML Email: Uses printf padding and HTML pre tags to ensure perfectly aligned columns in your inbox.
 
 ---
 
 ## Prerequisites (Ubuntu/Debian)
 
-The script requires a few standard packages and the MaxMind GeoIP database.
-
 ### 1. System Packages
-```bash
-sudo apt update
-sudo apt install mailutils whois mmdb-bin sed awk -y
-\`\`\`
+Install the necessary tools for WHOIS lookups, GeoIP parsing, and email delivery:
+
+    sudo apt update
+    sudo apt install mailutils whois mmdb-bin sed awk -y
 
 ### 2. MaxMind GeoLite2 Database
-The script expects the GeoLite2 City database at `/var/lib/GeoIP/GeoLite2-City.mmdb`.
-1. Sign up for a free account at [MaxMind](https://www.maxmind.com/).
-2. Download the **GeoLite2 City** binary (\`.mmdb\`) file.
-3. Place it on your system:
-   \`\`\`bash
-   sudo mkdir -p /var/lib/GeoIP
-   sudo mv GeoLite2-City.mmdb /var/lib/GeoIP/
-   \`\`\`
+The script requires the GeoLite2 City binary database.
+1. Sign up for a free account at MaxMind.
+2. Download the GeoLite2 City binary (.mmdb) file.
+3. Move the file to the standard location:
+
+    sudo mkdir -p /var/lib/GeoIP
+    sudo mv GeoLite2-City.mmdb /var/lib/GeoIP/
 
 ---
 
 ## Installation
 
-### 1. Configure Emails
-To keep your credentials out of version control, the script reads configuration from \`/etc/mikrotik-report.conf\`. Create this file:
+### 1. Configuration File
+The script requires a configuration file named mikrotik-report.conf. It searches for this file in the following order:
+1. Local Directory: ./mikrotik-report.conf (useful for development)
+2. System Directory: /etc/mikrotik-report.conf (standard production location)
 
-\`\`\`bash
-sudo nano /etc/mikrotik-report.conf
-\`\`\`
+Create the file and add your details:
 
-**Add the following lines:**
-\`\`\`bash
-SENDER_EMAIL="Techtricity Firewall Report <firewall@yourdomain.com>"
-RECIPIENT_EMAIL="yourname@yourdomain.com"
-\`\`\`
+    SENDER_EMAIL="Techtricity Firewall Report <firewall@yourdomain.com>"
+    RECIPIENT_EMAIL="yourname@yourdomain.com"
 
-### 2. Install the Script
-1. Move \`mikrotik-report.sh\` to \`/usr/local/bin/\`.
-2. Ensure it is executable:
-   \`\`\`bash
-   sudo chmod +x /usr/local/bin/mikrotik-report.sh
-   \`\`\`
+### 2. Script Deployment
+Move the script to your local bin and ensure it has execution permissions:
+
+    sudo mv mikrotik-report.sh /usr/local/bin/
+    sudo chmod +x /usr/local/bin/mikrotik-report.sh
 
 ---
 
 ## Automation (Logrotate)
 
-To run the report automatically before your logs are rotated, add it to your \`logrotate\` configuration (usually in \`/etc/logrotate.d/mikrotik\`):
+To automate the report before your firewall logs are rotated, add a prerotate block to your logrotate configuration (e.g., /etc/logrotate.d/mikrotik):
 
-\`\`\`text
-/var/log/mikrotik.log {
-    daily
-    rotate 31
-    prerotate
-        /usr/local/bin/mikrotik-report.sh "$1"
-    endscript
-    postrotate
-        [ -x /usr/lib/rsyslog/rsyslog-rotate ] && /usr/lib/rsyslog/rsyslog-rotate || true
-    endscript
-}
-\`\`\`
+    /var/log/mikrotik.log {
+        daily
+        rotate 31
+        prerotate
+            /usr/local/bin/mikrotik-report.sh "$1"
+        endscript
+    }
 
 ---
 
 ## Manual Usage
 
-You can run the script manually at any time to test the output:
+Run the script manually to test the configuration and verify the email output:
 
-\`\`\`bash
-sudo /usr/local/bin/mikrotik-report.sh
-\`\`\`
-EOF
+    sudo /usr/local/bin/mikrotik-report.sh
+
+To test against a specific rotated log file:
+
+    sudo /usr/local/bin/mikrotik-report.sh /var/log/mikrotik.log.1
