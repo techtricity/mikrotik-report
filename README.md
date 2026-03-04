@@ -1,6 +1,6 @@
-# Mikrotik Firewall Bomgar Reporter
+# Report generator for Mikrotik RouterOS firewall records stored in syslog
 
-This script parses Mikrotik firewall logs for unpermitted access attempts (in this case specifically traffic keyed with the word BOMGAR), aggregates hits by /24 subnets, and performs GeoIP/WHOIS lookups to identify the source.
+This script parses Mikrotik firewall logs for unpermitted access attempts (in this case specifically traffic keyed with the word BOMGAR), aggregates hits by /24 subnets, and performs GeoIP/WHOIS lookups to identify the source. Results then are sent out via the mail-x client.
 
 ## Features
 * Subnet Aggregation: Consolidates individual IP hits into /24 blocks to reduce report noise.
@@ -38,7 +38,7 @@ The script requires a configuration file named mikrotik-report.conf. It searches
 
 Create the file and add your details:
 
-    SENDER_EMAIL="Techtricity Firewall Report <firewall@yourdomain.com>"
+    SENDER_EMAIL="Firewall Report <firewall@yourdomain.com>"
     RECIPIENT_EMAIL="yourname@yourdomain.com"
 
 ### 2. Script Deployment
