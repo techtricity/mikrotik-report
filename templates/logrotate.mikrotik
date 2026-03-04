@@ -1,0 +1,19 @@
+/var/log/mikrotik.log
+{
+	rotate 31
+	daily
+	missingok
+	notifempty
+	compress
+	delaycompress
+	su root syslog
+	create 0644 syslog adm
+
+	prerotate
+		/usr/local/bin/mikrotik-report.sh "$1"
+	endscript
+
+	postrotate
+		[ -x /usr/lib/rsyslog/rsyslog-rotate ] && /usr/lib/rsyslog/rsyslog-rotate || true
+	endscript
+}
