@@ -4,18 +4,25 @@
 CONF_NAME="mikrotik-report.conf"
 LOCAL_CONF="./$CONF_NAME"
 ETC_CONF="/etc/$CONF_NAME"
+LOADED=false
 
-# Order of Precedence: 1. Local Directory, 2. /etc/
-if [ -f "$LOCAL_CONF" ]; then
+# 1. Check Precedence: Local, then /etc/
+# -f checks if file exists; -r checks if it is readable
+if [[ -f "$LOCAL_CONF" && -r "$LOCAL_CONF" ]]; then
 	source "$LOCAL_CONF"
-elif [ -f "$ETC_CONF" ]; then
+	LOADED=true
+elif [[ -f "$ETC_CONF" && -r "$ETC_CONF" ]]; then
 	source "$ETC_CONF"
-else
-	echo "Error: Configuration file '$CONF_NAME' not found in . or /etc." >&2
+	LOADED=true
+fi
+
+# 2. Exit if no config was found or readable
+if [ "$LOADED" = false ]; then
+	echo "Error: Configuration file '$CONF_NAME' not found or not readable in '.' or '/etc'." >&2
 	exit 1
 fi
 
-# Strict Variable Check
+# 3. Strict Variable Check
 if [[ -z "$SENDER_EMAIL" || -z "$RECIPIENT_EMAIL" ]]; then
 	echo "Error: SENDER_EMAIL or RECIPIENT_EMAIL is not defined in $CONF_NAME." >&2
 	exit 1
@@ -34,7 +41,7 @@ REPORT_TMP=$(mktemp)
 	/usr/bin/sort | /usr/bin/uniq -c | /usr/bin/sort -nr | \
 	/usr/bin/awk '{print $2 "\t" $1}' > "$REPORT_TMP"
 
-# 1. Build the primary content
+# Build the primary content
 if [ -s "$REPORT_TMP" ]; then
 	BODY="The following /24 Subnets attempted unpermitted access today:\n\n"
 	
@@ -82,10 +89,10 @@ fi
 
 BODY="${BODY}\nReport Generated: ${TIMESTAMP}"
 
-# 2. Format as HTML Monospace
+# Format as HTML Monospace
 HTML_BODY="<html><body><pre style='font-family: monospace;'>$(echo -e "$BODY")</pre></body></html>"
 
-# 3. Send using variables from config
+# Send using variables from config
 echo "$HTML_BODY" | /usr/bin/mailx -s "$SUBJECT" \
 	-a "Content-Type: text/html" \
 	-a "From: $SENDER_EMAIL" \
