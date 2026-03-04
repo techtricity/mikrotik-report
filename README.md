@@ -38,7 +38,7 @@ The script requires a configuration file named mikrotik-report.conf. It searches
 
 Create the file and add your details:
 
-    SENDER_EMAIL="Techtricity Firewall Report <firewall@yourdomain.com>"
+    SENDER_EMAIL="Firewall Report <firewall@yourdomain.com>"
     RECIPIENT_EMAIL="yourname@yourdomain.com"
 
 ### 2. Script Deployment
