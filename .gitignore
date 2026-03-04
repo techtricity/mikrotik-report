@@ -1,0 +1,10 @@
+# Logs and temp files
+*.log
+*.log.*
+/tmp/report_tmp.*
+
+# Configuration and sensitive data
+mikrotik-report.conf
+
+# System files
+.DS_Store
