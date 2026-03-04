@@ -4,6 +4,10 @@
 CONF_NAME="mikrotik-report.conf"
 LOCAL_CONF="./$CONF_NAME"
 ETC_CONF="/etc/$CONF_NAME"
+LOGFILE="${1:-/var/log/mikrotik.log}"
+DB="/var/lib/GeoIP/GeoLite2-City.mmdb"
+TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S %Z")
+REPORT_TMP=$(mktemp)
 LOADED=false
 
 # 1. Check Precedence: Local, then /etc/
@@ -28,12 +32,6 @@ if [[ -z "$SENDER_EMAIL" || -z "$RECIPIENT_EMAIL" ]]; then
 	exit 1
 fi
 
-# Variables
-LOGFILE="${1:-/var/log/mikrotik.log}"
-DB="/var/lib/GeoIP/GeoLite2-City.mmdb"
-TIMESTAMP=$(date +"%Y%m%d:%H:%M:%S")
-REPORT_TMP=$(mktemp)
-
 # --- LOGIC ---
 
 # Generate raw data using Tabs for script logic
@@ -47,7 +45,7 @@ if [ -s "$REPORT_TMP" ]; then
 	
 	HEADER_STR=$(printf "%-64.64s %s" "SUBNET/MASK (LOCATION/ORG)" "OCCURRENCES")
 	BODY="${BODY}${HEADER_STR}\n"
-	BODY="${BODY}----------------------------------------------------------------------------\n"
+	BODY="${BODY}----------------------------------------------------------------+-----------\n"
 	
 	while IFS=$'\t' read -r SUBNET COUNT; do
 		IP_FOR_LOOKUP=$(echo "$SUBNET" | sed 's/\.0$/.1/')
