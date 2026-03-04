@@ -1,6 +1,6 @@
 # Mikrotik Firewall Bomgar Reporter
 
-This script parses Mikrotik firewall logs for unpermitted access attempts (in this case specifically traffic keyed with the word BOMGAR), aggregates hits by /24 subnets, and performs GeoIP/WHOIS lookups to identify the source.
+This script parses Mikrotik firewall logs for unpermitted access attempts (in this case specifically traffic keyed with the word BOMGAR), aggregates hits by /24 subnets, and performs GeoIP/WHOIS lookups to identify the source. Results then are sent out via the mail-x client.
 
 ## Features
 * Subnet Aggregation: Consolidates individual IP hits into /24 blocks to reduce report noise.
