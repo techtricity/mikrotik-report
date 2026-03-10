@@ -79,10 +79,10 @@ if [ -s "$REPORT_TMP" ]; then
 		BODY="${BODY}${FORMATTED_LINE}\n"
 	done < "$REPORT_TMP"
 	
-	SUBJECT="$(date +%F): Unpermitted Bomgar Access"
+	SUBJECT="$(date --date yesterday +%F): Unpermitted Bomgar Access"
 else
 	BODY="No unpermitted IPs were detected today.\n"
-	SUBJECT="$(date +%F): Unpermitted Bomgar Access - Clear"
+	SUBJECT="$(date --date yesterday +%F): Unpermitted Bomgar Access - Clear"
 fi
 
 BODY="${BODY}\nReport Generated: ${TIMESTAMP}"
